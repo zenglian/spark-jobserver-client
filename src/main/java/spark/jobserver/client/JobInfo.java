@@ -17,12 +17,8 @@
 package spark.jobserver.client;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.google.gson.JsonObject;
-import com.google.gson.annotations.SerializedName;
-
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,109 +27,20 @@ import lombok.Setter;
  * <code>GET /jobs/&lt;jobId&gt;</code> to a spark job server.
  * 
  */
-@Getter @Setter
-public class JobInfo extends Pojo {
+@Data
+public class JobInfo{
 	private String jobId;
 	private JobStatus status;
 	private String context;
 	private String classPath;
 	private String duration;
 	private Date startTime;
-	
-	@SerializedName("result")
-	private JsonObject result; 
-	private String contents; 
-	private Map<String, Object> extendAttributes = new HashMap<String, Object>();
+	private Result result;  //we do not know its class type
 
-	public JobInfo(String contents, String jobId) {
-		this.contents = contents;
-		setJobId(jobId);
-	}
-
-	public JobInfo(String contents) {
-		this(contents, null);
-	}	
-
-	public void putExtendAttribute(String key, Object value) {
-		this.extendAttributes.put(key, value);
-	}	
-	
-
-	/**
-	 * Judges current <code>JobResult</code> instance represents the 
-	 * status information of a asynchronous running spark job or not.
-	 * 
-	 * @return true indicates it contains asynchronous running status of a
-	 *         spark job, false otherwise
-	 */
-	public boolean isRunning() {
-		return getStatus() == JobStatus.STARTED || getStatus() == JobStatus.RUNNING;		
-	}
-
-	public boolean isFinished(){
-		return getStatus() == JobStatus.FINISHED || getStatus() == JobStatus.OK;		
-	}
-	
-	/**
-	 * If status is error.
-	 * @return
-	 */
-	public boolean isError(){
-		return status == JobStatus.ERROR;
-	}		
-	
-	/**
-	 * Judges the queried target job doesn't exist or not.
-	 * 
-	 * @return true indicates the related job doesn't exist, false otherwise
-	 */
-	public boolean jobNotExists() {
-		return getStatus() == JobStatus.ERROR && getResult().toString().contains("No such job ID");
-	}
-	
-	/**
-	 * Judges current <code>JobResult</code> instance contains 
-	 * custom-defined extend attributes of result or not
-	 * 
-	 * @return true indicates it contains custom-defined extend attributes, false otherwise
-	 */
-	public boolean containsExtendAttributes() {
-		return !extendAttributes.isEmpty();
-	}
-	
-	/**
-	 * Convert result field into an string
-	 * @param <T>
-	 * @return result.
-	 */
-	public <T> T getResultAs(Class<T> t){
-		return gson.fromJson(result, t);
-	}	
-	
-	/**
-	 * Convert result field into an ErrorResult object, null if no error
-	 * @return error result.
-	 */
-	public Error getResultAsError(){
-		if(!isError())
-			return null;	
-		
-		return gson.fromJson(result, Error.class);
-	}
-	
-	
-	/**
-	 * Convert result field into an string
-	 * @return result.
-	 */
-	public String getResultAsString(){
-		return result.toString();
-	}
-	
-	@Getter @Setter
-	public static class Error{
+	@Data
+	public static class Result{
 		private String message;
 		private String errorClass;
 		private String[] stack;
-	}		
+	}
 }
