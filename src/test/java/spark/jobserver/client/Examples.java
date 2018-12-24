@@ -11,6 +11,7 @@ package spark.jobserver.client;
 import junit.framework.TestCase;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+import org.junit.Assert;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,8 +25,16 @@ import java.util.concurrent.CountDownLatch;
 /**
  *
  */
-public class Examples{ // extends TestCase {
-    private static JobServerService service = JobServerService.newInstance("http://master:8090");
+public class Examples extends TestCase {
+    private static JobServerService service = JobServerService.newInstance("http://s2:8090");
+
+    public void test() {
+        HashMap a = new HashMap() {{
+            put("a", "b");
+            put("c", "d");
+        }};
+        System.out.println(a.keySet().toString());
+    }
 
     public void testGets() throws IOException {
         List<JobInfo> jobs = service.getJobs().execute().body();
@@ -42,15 +51,14 @@ public class Examples{ // extends TestCase {
         System.out.println(contexts);
     }
 
-
     public void testUploadJar() throws IOException, InterruptedException {
-        String fileName = "D:/jars/spark-app.jar";
-        String appName = "m2";
-        System.out.println(service.uploadJar(appName, fileName));
+        String fileName = "d:/tmp/s2.jar";
+        String appName = "query-status2";
+        System.out.println("---" + service.uploadJar(appName, fileName));
     }
 
     public void testUploadJarAsync() throws IOException, InterruptedException {
-        String fileName = "D:/jars/spark-app.jar";
+        String fileName = "D:/scratch/llian/workspaces/spark/jars/spark-app.jar";
         String appName = "m2";
         RequestBody file = RequestBody.create(MediaType.parse("application/java-archive"), new File(fileName));
         Call<String> call = service.uploadJar(appName, file);
@@ -71,21 +79,42 @@ public class Examples{ // extends TestCase {
         latch.await();
     }
 
-    public void testCreateContext() throws IOException {
-        SparkConf conf = new SparkConf();
-        String ok = service.createContext("context3", conf.toMap()).execute().errorBody().string();
+    public void testContext() throws IOException {
+        SparkConf conf = new SparkConf().contextFactory("spark.jobserver.context.StreamingContextFactory");
+        String ok = service.createContext("query-status2" + System.currentTimeMillis(), conf.toMap()).execute().errorBody().string();
         System.err.println(ok);
     }
 
-    public void testStartJob() throws IOException {
-        SparkConf conf = new SparkConf().appName("app1").classPath("spark.jobserver.WordCountExample").sync(true);
-        service.startJob("", conf.toMap()).execute();
+    public void testDeleteQueryStatus2() throws IOException {
+        String appName = "query-status2";
+        String contextName = appName + "-context";
+        Result result = service.deleteContext(contextName).execute().body();
+        System.out.println(result);
+    }
+
+    public void testQueryStatus2() throws IOException {
+        String fileName = "d:/tmp/s2.jar";
+        String appName = "query-status2";
+        String contextName = appName + "-context";
+        service.uploadJar(appName, fileName);
+        Result result = service.deleteContext(contextName).execute().body();
+        //System.out.println(result.getResult());
+        SparkConf conf1 = new SparkConf()//.contextFactory("spark.jobserver.context.StreamingContextFactory")
+                .driverPath("hdfs://hdfs-name:9000/apps/spark/*");
+        result = service.createContext(contextName, conf1.toMap()).execute().body();
+        Assert.assertEquals("SUCCESS", result.getStatus());
+        System.out.println(result.getResult());
+        SparkConf conf2 = new SparkConf().appName(appName).context(appName + "-context")
+                .classPath("demo.spark.jobserver.querystatus.JobServerWrapper").sync(false);
+        Object info = service.startJob(conf2.toMap()).execute().body();
+
+        //Assert.assertNotEquals(JobStatus.ERROR, info.getStatus());
     }
 
     public void testDeletes() throws IOException {
         String x = service.deleteBinary("sql-app").execute().body();
         System.out.println(x);
-        String y = service.deleteContext("").execute().body();
+        Result y = service.deleteContext("").execute().body();
         String z = service.deleteData("").execute().body();
     }
 }

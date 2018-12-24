@@ -26,6 +26,7 @@ public interface Mapping {
         Map<String, Object> result = new HashMap<>();
         for (Field field : this.getClass().getDeclaredFields()) {
             try {
+                field.setAccessible(true);
                 Object value = field.get(this);
                 if (value == null) continue;
                 //if ((value instanceof Number) && ((Number) value).doubleValue() < 0) continue;
