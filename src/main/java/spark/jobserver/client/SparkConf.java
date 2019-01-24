@@ -1,11 +1,9 @@
 package spark.jobserver.client;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Data;
-import lombok.Setter;
-import lombok.experimental.Accessors;
 
-import java.util.HashMap;
+import lombok.Data;
+import lombok.experimental.Accessors;
 
 /**
  * Spark configurations.
@@ -13,15 +11,15 @@ import java.util.HashMap;
 @Data
 @Accessors(fluent = true)
 public class SparkConf implements Mapping {
-    private String appName;
-    private long timeout = 500000;
-    private String classPath;
-    private boolean sync = false;
-    private String context;
-    @SerializedName("context-factory")
-    private String contextFactory;
-    @SerializedName("spark.yarn.jars")
-    private String driverPath;
-    @SerializedName("spark.executor.extraLibraryPath")
-    private String executorPath;
+  private String appName;
+  private long timeout = 500000;
+  private String classPath;
+  private boolean sync = false;
+  private String context;
+  @SerializedName("context-factory")
+  private String contextFactory;
+  @SerializedName("spark.yarn.jars")
+  private String jars;
+  @SerializedName("spark.executor.extraLibraryPath")
+  private String executorPath;
 }

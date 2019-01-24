@@ -15,29 +15,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * Util to convert fields into Map.
  */
 public interface Mapping {
-    /**
-     * Convert bean to Map.
-     * @return Map of fields.
-     */
-    default Map<String, Object> toMap() {
-        Map<String, Object> result = new HashMap<>();
-        for (Field field : this.getClass().getDeclaredFields()) {
-            try {
-                field.setAccessible(true);
-                Object value = field.get(this);
-                if (value == null) continue;
-                //if ((value instanceof Number) && ((Number) value).doubleValue() < 0) continue;
-                if(field.isAnnotationPresent(SerializedName.class))
-                    result.put((field.getAnnotation(SerializedName.class)).value(), value);
-                else
-                    result.put(field.getName(), value);
-            } catch (IllegalAccessException e) {
-                System.out.println(e.getMessage() + ": " + field.getName());
-            }
+  /**
+   * Convert bean to Map.
+   *
+   * @return Map of fields.
+   */
+  default Map<String, Object> toMap() {
+    Map<String, Object> result = new HashMap<>();
+    for (Field field : this.getClass().getDeclaredFields()) {
+      try {
+        field.setAccessible(true);
+        Object value = field.get(this);
+        if (value == null) {
+          continue;
         }
-        return result;
+        //if ((value instanceof Number) && ((Number) value).doubleValue() < 0) continue;
+        if (field.isAnnotationPresent(SerializedName.class)) {
+          result.put((field.getAnnotation(SerializedName.class)).value(), value);
+        } else {
+          result.put(field.getName(), value);
+        }
+      } catch (IllegalAccessException e) {
+        System.out.println(e.getMessage() + ": " + field.getName());
+      }
     }
+    return result;
+  }
 }

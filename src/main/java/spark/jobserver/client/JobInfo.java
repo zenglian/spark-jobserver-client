@@ -19,28 +19,25 @@ package spark.jobserver.client;
 import java.util.Date;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
- * Presents the information of spark job result, when calling 
+ * Presents the information of spark job result, when calling
  * <code>GET /jobs/&lt;jobId&gt;</code> to a spark job server.
- * 
  */
 @Data
-public class JobInfo{
-	private String jobId;
-	private JobStatus status;
-	private String context;
-	private String classPath;
-	private String duration;
-	private Date startTime;
-	private Result result;  //we do not know its class type
+public class JobInfo {
+  private String jobId;
+  private JobStatus status;
+  private String context;
+  private String classPath;
+  private String duration;
+  private Date startTime;
+  private Result result;  //we do not know its class type
 
-	@Data
-	public static class Result{
-		private String message;
-		private String errorClass;
-		private String[] stack;
-	}
+  @Data
+  public static class Result {
+    private String message;
+    private String errorClass;
+    private String[] stack;
+  }
 }
